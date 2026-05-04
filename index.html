@@ -3,40 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Banchet 🎓</title>
+<title>Formular Banchet 🎓</title>
 
 <style>
 body {
-    font-family: -apple-system, sans-serif;
-    background: linear-gradient(135deg,#0f172a,#1e293b);
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
-    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
 }
+
 .container {
-    background:rgba(255,255,255,0.05);
-    padding:30px;
-    border-radius:20px;
-    width:400px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(15px);
+    padding: 30px;
+    border-radius: 20px;
+    width: 420px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
-.hidden{display:none;}
-button{padding:10px;width:100%;margin-top:10px;}
-.toggle{display:flex;gap:10px;}
-.toggle button{flex:1;}
-.active{background:#6366f1;}
+
+.question { margin: 18px 0; }
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+}
+
+.hidden { display: none; }
+
+.toggle {
+    display: flex;
+    gap: 10px;
+}
+
+.toggle button {
+    flex: 1;
+    padding: 10px;
+    background: #334155;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.active {
+    background: #6366f1;
+}
+
+button.submit {
+    width: 100%;
+    padding: 12px;
+    background: #6366f1;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    margin-top: 10px;
+    cursor: pointer;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-<h2>Formular Banchet</h2>
 
-<input id="name" placeholder="Nume"><br><br>
+<h2>🎓 Formular Banchet</h2>
 
+<div class="question">
+<input id="name" placeholder="Nume">
+</div>
+
+<div class="question">
 <select id="attend">
 <option value="">Vii la banchet?</option>
 <option>Da</option>
@@ -46,66 +88,56 @@ button{padding:10px;width:100%;margin-top:10px;}
 </select>
 
 <p id="suggestion" class="hidden">👉 Poți veni cu colegii!</p>
+</div>
 
-<div id="peopleBox" class="hidden">
+<div class="question hidden" id="peopleBox">
 <input type="number" id="people" placeholder="Câte persoane?">
 </div>
 
-<br>
-
-<div class="toggle">
+<div class="question toggle">
 <button id="yes">Dansez</button>
 <button id="no">Nu dansez</button>
 </div>
 
-<button id="submit" type="button">Trimite</button>
+<button class="submit" id="submit">Trimite</button>
 
 <p id="success"></p>
-<p id="stats"></p>
+
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-import { getFirestore, addDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+<!-- 🔥 Firebase (fără module → stabil) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-// 🔥 CONFIGUL TĂU
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyB18N1nJuYOyCvaPwmqHw2XTVW_DdLPZtg",
   authDomain: "banchet-app.firebaseapp.com",
-  projectId: "banchet-app",
-  storageBucket: "banchet-app.firebasestorage.app",
-  messagingSenderId: "382781188547",
-  appId: "1:382781188547:web:6676cb909c79ba49b3b576"
+  projectId: "banchet-app"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// ELEMENTE
-const attend = document.getElementById("attend");
-const peopleBox = document.getElementById("peopleBox");
-const suggestion = document.getElementById("suggestion");
-const submitBtn = document.getElementById("submit");
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 let dance = "";
 
-// LOGICĂ
-attend.addEventListener("change", () => {
-    console.log("CHANGE FUNCȚIONEAZĂ");
+// logică
+document.getElementById("attend").addEventListener("change", function() {
+    const val = this.value;
 
-    peopleBox.classList.add("hidden");
-    suggestion.classList.add("hidden");
+    document.getElementById("peopleBox").classList.add("hidden");
+    document.getElementById("suggestion").classList.add("hidden");
 
-    if (attend.value === "Da") {
-        peopleBox.classList.remove("hidden");
+    if (val === "Da") {
+        document.getElementById("peopleBox").classList.remove("hidden");
     }
 
-    if (attend.value === "Aș veni dar nu am cu cine") {
-        suggestion.classList.remove("hidden");
+    if (val === "Aș veni dar nu am cu cine") {
+        document.getElementById("suggestion").classList.remove("hidden");
     }
 });
 
-// TOGGLE
+// toggle
 document.getElementById("yes").onclick = () => {
     dance = "Da";
     setActive("yes");
@@ -121,53 +153,37 @@ function setActive(id){
     document.getElementById(id).classList.add("active");
 }
 
-// SUBMIT
-submitBtn.addEventListener("click", async () => {
+// submit
+document.getElementById("submit").onclick = async () => {
 
-    console.log("CLICK FUNCȚIONEAZĂ");
+    console.log("CLICK OK");
 
     const name = document.getElementById("name").value;
+    const attend = document.getElementById("attend").value;
     let people = parseInt(document.getElementById("people").value) || 0;
 
-    if (!name || !attend.value || !dance){
+    if (!name || !attend || !dance){
         alert("Completează!");
         return;
     }
 
-    if (attend.value !== "Da") people = 0;
+    if (attend !== "Da") people = 0;
 
     try {
-        await addDoc(collection(db, "banchet"), {
+        await db.collection("banchet").add({
             name,
-            attend: attend.value,
+            attend,
             people,
             dance,
             createdAt: new Date()
         });
 
-        console.log("SALVAT!");
-
         document.getElementById("success").innerText = "✅ Salvat!";
-        loadStats();
-
-    } catch (e) {
-        console.error("EROARE:", e);
+    } catch(e){
+        console.error(e);
         alert("Eroare Firebase!");
     }
-});
-
-// STATS
-async function loadStats(){
-    const snap = await getDocs(collection(db, "banchet"));
-    let total = 0;
-
-    snap.forEach(d => total += d.data().people || 0);
-
-    document.getElementById("stats").innerText =
-        "👥 Total: " + total;
-}
-
-loadStats();
+};
 </script>
 
 </body>
