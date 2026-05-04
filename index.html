@@ -26,13 +26,9 @@ body {
     box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
 
-h1 {
-    text-align: center;
-}
+h1 { text-align: center; }
 
-.question {
-    margin: 18px 0;
-}
+.question { margin: 18px 0; }
 
 label {
     display: block;
@@ -59,7 +55,6 @@ input, select {
     background: #334155;
     color: white;
     cursor: pointer;
-    transition: 0.2s;
 }
 
 .toggle-btn.active {
@@ -78,22 +73,18 @@ button.submit {
     cursor: pointer;
 }
 
+.hidden { display: none; }
+
 #success {
     display: none;
-    text-align: center;
-    margin-top: 20px;
+    margin-top: 15px;
     color: #22c55e;
 }
 
 #suggestion {
     display: none;
-    margin-top: 10px;
     font-size: 14px;
     color: #38bdf8;
-}
-
-.hidden {
-    display: none;
 }
 </style>
 </head>
@@ -105,12 +96,12 @@ button.submit {
 
     <div class="question">
         <label>Nume:</label>
-        <input type="text" id="name" placeholder="Numele tău">
+        <input type="text" id="name">
     </div>
 
     <div class="question">
         <label>Vii la banchet?</label>
-        <select id="attend" onchange="handleAttend()">
+        <select id="attend">
             <option value="">Selectează</option>
             <option>Da</option>
             <option>Nu</option>
@@ -118,25 +109,23 @@ button.submit {
             <option>Aș veni dar nu am cu cine</option>
         </select>
 
-        <div id="suggestion">
-            👉 Poți veni cu colegii sau prietenii!
-        </div>
+        <div id="suggestion">👉 Poți veni cu colegii!</div>
     </div>
 
     <div class="question hidden" id="peopleBox">
         <label>Câte persoane?</label>
-        <input type="number" id="people" min="1" placeholder="Ex: 2">
+        <input type="number" id="people" min="1">
     </div>
 
     <div class="question">
         <label>Dansezi?</label>
         <div class="toggle-group">
-            <button class="toggle-btn" onclick="setDance('Da', this)">Da</button>
-            <button class="toggle-btn" onclick="setDance('Nu', this)">Nu</button>
+            <button class="toggle-btn" id="danceYes">Da</button>
+            <button class="toggle-btn" id="danceNo">Nu</button>
         </div>
     </div>
 
-    <button class="submit" onclick="submitForm()">Trimite</button>
+    <button class="submit" id="submitBtn">Trimite</button>
 
     <div id="success">✅ Răspuns trimis!</div>
     <div id="stats"></div>
@@ -158,47 +147,62 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// SELECT ELEMENTE
+const attend = document.getElementById("attend");
+const peopleBox = document.getElementById("peopleBox");
+const suggestion = document.getElementById("suggestion");
+const submitBtn = document.getElementById("submitBtn");
+
 let danceValue = "";
 
 // LOGICĂ DINAMICĂ
-window.handleAttend = function(){
-    const val = document.getElementById("attend").value;
+attend.addEventListener("change", () => {
+    const val = attend.value;
 
-    document.getElementById("peopleBox").classList.add("hidden");
-    document.getElementById("suggestion").style.display = "none";
+    peopleBox.classList.add("hidden");
+    suggestion.style.display = "none";
 
-    if(val === "Da"){
-        document.getElementById("peopleBox").classList.remove("hidden");
+    if (val === "Da") {
+        peopleBox.classList.remove("hidden");
     }
 
-    if(val === "Aș veni dar nu am cu cine"){
-        document.getElementById("suggestion").style.display = "block";
+    if (val === "Aș veni dar nu am cu cine") {
+        suggestion.style.display = "block";
     }
-}
+});
 
-// toggle
-window.setDance = function(value, el){
-    danceValue = value;
-    document.querySelectorAll(".toggle-btn").forEach(btn => btn.classList.remove("active"));
-    el.classList.add("active");
+// TOGGLE DANS
+document.getElementById("danceYes").addEventListener("click", () => {
+    danceValue = "Da";
+    setActive("danceYes");
+});
+
+document.getElementById("danceNo").addEventListener("click", () => {
+    danceValue = "Nu";
+    setActive("danceNo");
+});
+
+function setActive(id){
+    document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
 }
 
 // SUBMIT
-window.submitForm = async function(){
+submitBtn.addEventListener("click", async () => {
     const name = document.getElementById("name").value;
-    const attend = document.getElementById("attend").value;
+    const attendVal = attend.value;
     let people = parseInt(document.getElementById("people").value) || 0;
 
-    if (!name || !attend || !danceValue){
+    if (!name || !attendVal || !danceValue){
         alert("Completează toate câmpurile!");
         return;
     }
 
-    if(attend !== "Da") people = 0;
+    if (attendVal !== "Da") people = 0;
 
     await addDoc(collection(db, "banchet"), {
         name,
-        attend,
+        attend: attendVal,
         people,
         dance: danceValue,
         createdAt: new Date()
@@ -206,31 +210,21 @@ window.submitForm = async function(){
 
     document.getElementById("success").style.display = "block";
 
-    // reset form
-    document.getElementById("name").value = "";
-    document.getElementById("attend").value = "";
-    document.getElementById("people").value = "";
-    danceValue = "";
-    document.querySelectorAll(".toggle-btn").forEach(btn => btn.classList.remove("active"));
-
     loadStats();
-}
+});
 
 // STATS
 async function loadStats(){
     const snapshot = await getDocs(collection(db, "banchet"));
 
     let total = 0;
-    snapshot.forEach(doc => {
-        total += doc.data().people || 0;
-    });
+    snapshot.forEach(doc => total += doc.data().people || 0);
 
     document.getElementById("stats").innerText =
         "👥 Total participanți: " + total;
 }
 
 loadStats();
-
 </script>
 
 </body>
