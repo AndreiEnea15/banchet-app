@@ -103,13 +103,11 @@ button.submit {
 <div class="container">
     <h1>🎓 Formular Banchet</h1>
 
-    <!-- Nume -->
     <div class="question">
         <label>Nume:</label>
         <input type="text" id="name" placeholder="Numele tău">
     </div>
 
-    <!-- Participare -->
     <div class="question">
         <label>Vii la banchet?</label>
         <select id="attend" onchange="handleAttend()">
@@ -125,13 +123,11 @@ button.submit {
         </div>
     </div>
 
-    <!-- Persoane -->
     <div class="question hidden" id="peopleBox">
         <label>Câte persoane?</label>
         <input type="number" id="people" min="1" placeholder="Ex: 2">
     </div>
 
-    <!-- Dans -->
     <div class="question">
         <label>Dansezi?</label>
         <div class="toggle-group">
@@ -143,6 +139,7 @@ button.submit {
     <button class="submit" onclick="submitForm()">Trimite</button>
 
     <div id="success">✅ Răspuns trimis!</div>
+    <div id="stats"></div>
 </div>
 
 <script type="module">
@@ -163,7 +160,7 @@ const db = getFirestore(app);
 
 let danceValue = "";
 
-// LOGICĂ
+// LOGICĂ DINAMICĂ
 window.handleAttend = function(){
     const val = document.getElementById("attend").value;
 
@@ -179,13 +176,14 @@ window.handleAttend = function(){
     }
 }
 
+// toggle
 window.setDance = function(value, el){
     danceValue = value;
     document.querySelectorAll(".toggle-btn").forEach(btn => btn.classList.remove("active"));
     el.classList.add("active");
 }
 
-// 🔥 SALVARE REALĂ
+// SUBMIT
 window.submitForm = async function(){
     const name = document.getElementById("name").value;
     const attend = document.getElementById("attend").value;
@@ -198,40 +196,37 @@ window.submitForm = async function(){
 
     if(attend !== "Da") people = 0;
 
-    const data = {
+    await addDoc(collection(db, "banchet"), {
         name,
         attend,
         people,
         dance: danceValue,
         createdAt: new Date()
-    };
-
-    await addDoc(collection(db, "banchet"), data);
+    });
 
     document.getElementById("success").style.display = "block";
+
+    // reset form
+    document.getElementById("name").value = "";
+    document.getElementById("attend").value = "";
+    document.getElementById("people").value = "";
+    danceValue = "";
+    document.querySelectorAll(".toggle-btn").forEach(btn => btn.classList.remove("active"));
 
     loadStats();
 }
 
-// 📊 LIVE STATS
+// STATS
 async function loadStats(){
     const snapshot = await getDocs(collection(db, "banchet"));
 
     let total = 0;
-
-    snapshot.forEach(doc=>{
+    snapshot.forEach(doc => {
         total += doc.data().people || 0;
     });
 
-    let stats = document.getElementById("stats");
-
-    if(!stats){
-        stats = document.createElement("div");
-        stats.id = "stats";
-        document.querySelector(".container").appendChild(stats);
-    }
-
-    stats.innerText = "👥 Total participanți: " + total;
+    document.getElementById("stats").innerText =
+        "👥 Total participanți: " + total;
 }
 
 loadStats();
