@@ -1,15 +1,96 @@
 <!DOCTYPE html>
-<html>
-<body style="background:black; color:white; text-align:center; margin-top:100px;">
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<title>Banchet</title>
 
-<h2>TEST</h2>
+<style>
+body {
+    background: #0f172a;
+    color: white;
+    font-family: sans-serif;
+    text-align: center;
+    padding-top: 50px;
+}
 
-<button id="btn">Trimite</button>
+.hidden { display: none; }
+
+button {
+    margin: 5px;
+    padding: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Formular Banchet</h2>
+
+<input id="name" placeholder="Nume"><br><br>
+
+<select id="attend">
+<option value="">Vii la banchet?</option>
+<option>Da</option>
+<option>Nu</option>
+<option>Nu m-am hotărât</option>
+<option>Aș veni dar nu am cu cine</option>
+</select>
+
+<p id="suggestion" class="hidden">👉 Poți veni cu colegii!</p>
+
+<div id="peopleBox" class="hidden">
+<input type="number" id="people" placeholder="Câte persoane?">
+</div>
+
+<br>
+
+<button id="yes">Dansez</button>
+<button id="no">Nu dansez</button>
+
+<br><br>
+
+<button id="submit">Trimite</button>
 
 <script>
-document.getElementById("btn").onclick = function() {
-    alert("MERGE CLICK");
-    console.log("CLICK OK");
+let dance = "";
+
+// dropdown logic
+document.getElementById("attend").onchange = function() {
+    let val = this.value;
+
+    document.getElementById("peopleBox").classList.add("hidden");
+    document.getElementById("suggestion").classList.add("hidden");
+
+    if (val === "Da") {
+        document.getElementById("peopleBox").classList.remove("hidden");
+    }
+
+    if (val === "Aș veni dar nu am cu cine") {
+        document.getElementById("suggestion").classList.remove("hidden");
+    }
+};
+
+// dance
+document.getElementById("yes").onclick = () => dance = "Da";
+document.getElementById("no").onclick = () => dance = "Nu";
+
+// submit
+document.getElementById("submit").onclick = function() {
+
+    console.log("CLICK FUNCȚIONEAZĂ");
+
+    let name = document.getElementById("name").value;
+    let attend = document.getElementById("attend").value;
+    let people = document.getElementById("people").value;
+
+    alert("Merge! Datele sunt în console");
+
+    console.log({
+        name,
+        attend,
+        people,
+        dance
+    });
 };
 </script>
 
