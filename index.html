@@ -145,11 +145,26 @@ button.submit {
     <div id="success">✅ Răspuns trimis!</div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { getFirestore, addDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB18N1nJuYOyCvaPwmqHw2XTVW_DdLPZtg",
+  authDomain: "banchet-app.firebaseapp.com",
+  projectId: "banchet-app",
+  storageBucket: "banchet-app.firebasestorage.app",
+  messagingSenderId: "382781188547",
+  appId: "1:382781188547:web:6676cb909c79ba49b3b576"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 let danceValue = "";
 
-// LOGICĂ DINAMICĂ
-function handleAttend(){
+// LOGICĂ
+window.handleAttend = function(){
     const val = document.getElementById("attend").value;
 
     document.getElementById("peopleBox").classList.add("hidden");
@@ -164,15 +179,14 @@ function handleAttend(){
     }
 }
 
-// toggle dans
-function setDance(value, el){
+window.setDance = function(value, el){
     danceValue = value;
     document.querySelectorAll(".toggle-btn").forEach(btn => btn.classList.remove("active"));
     el.classList.add("active");
 }
 
-// submit
-function submitForm(){
+// 🔥 SALVARE REALĂ
+window.submitForm = async function(){
     const name = document.getElementById("name").value;
     const attend = document.getElementById("attend").value;
     let people = parseInt(document.getElementById("people").value) || 0;
@@ -184,12 +198,44 @@ function submitForm(){
 
     if(attend !== "Da") people = 0;
 
-    const data = { name, attend, people, dance: danceValue };
+    const data = {
+        name,
+        attend,
+        people,
+        dance: danceValue,
+        createdAt: new Date()
+    };
 
-    console.log(data);
+    await addDoc(collection(db, "banchet"), data);
 
     document.getElementById("success").style.display = "block";
+
+    loadStats();
 }
+
+// 📊 LIVE STATS
+async function loadStats(){
+    const snapshot = await getDocs(collection(db, "banchet"));
+
+    let total = 0;
+
+    snapshot.forEach(doc=>{
+        total += doc.data().people || 0;
+    });
+
+    let stats = document.getElementById("stats");
+
+    if(!stats){
+        stats = document.createElement("div");
+        stats.id = "stats";
+        document.querySelector(".container").appendChild(stats);
+    }
+
+    stats.innerText = "👥 Total participanți: " + total;
+}
+
+loadStats();
+
 </script>
 
 </body>
