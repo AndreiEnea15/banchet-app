@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formular Banchet 🎓</title>
+
+<style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(15px);
+    padding: 30px;
+    border-radius: 20px;
+    width: 420px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+h1 {
+    text-align: center;
+}
+
+.question {
+    margin: 18px 0;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+}
+
+.toggle-group {
+    display: flex;
+    gap: 10px;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #334155;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.toggle-btn.active {
+    background: #6366f1;
+    transform: scale(1.05);
+}
+
+button.submit {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: #6366f1;
+    color: white;
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+#success {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+    color: #22c55e;
+}
+
+#suggestion {
+    display: none;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #38bdf8;
+}
+
+.hidden {
+    display: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🎓 Formular Banchet</h1>
+
+    <!-- Nume -->
+    <div class="question">
+        <label>Nume:</label>
+        <input type="text" id="name" placeholder="Numele tău">
+    </div>
+
+    <!-- Participare -->
+    <div class="question">
+        <label>Vii la banchet?</label>
+        <select id="attend" onchange="handleAttend()">
+            <option value="">Selectează</option>
+            <option>Da</option>
+            <option>Nu</option>
+            <option>Nu m-am hotărât</option>
+            <option>Aș veni dar nu am cu cine</option>
+        </select>
+
+        <div id="suggestion">
+            👉 Poți veni cu colegii sau prietenii!
+        </div>
+    </div>
+
+    <!-- Persoane -->
+    <div class="question hidden" id="peopleBox">
+        <label>Câte persoane?</label>
+        <input type="number" id="people" min="1" placeholder="Ex: 2">
+    </div>
+
+    <!-- Dans -->
+    <div class="question">
+        <label>Dansezi?</label>
+        <div class="toggle-group">
+            <button class="toggle-btn" onclick="setDance('Da', this)">Da</button>
+            <button class="toggle-btn" onclick="setDance('Nu', this)">Nu</button>
+        </div>
+    </div>
+
+    <button class="submit" onclick="submitForm()">Trimite</button>
+
+    <div id="success">✅ Răspuns trimis!</div>
+</div>
+
+<script>
+let danceValue = "";
+
+// LOGICĂ DINAMICĂ
+function handleAttend(){
+    const val = document.getElementById("attend").value;
+
+    document.getElementById("peopleBox").classList.add("hidden");
+    document.getElementById("suggestion").style.display = "none";
+
+    if(val === "Da"){
+        document.getElementById("peopleBox").classList.remove("hidden");
+    }
+
+    if(val === "Aș veni dar nu am cu cine"){
+        document.getElementById("suggestion").style.display = "block";
+    }
+}
+
+// toggle dans
+function setDance(value, el){
+    danceValue = value;
+    document.querySelectorAll(".toggle-btn").forEach(btn => btn.classList.remove("active"));
+    el.classList.add("active");
+}
+
+// submit
+function submitForm(){
+    const name = document.getElementById("name").value;
+    const attend = document.getElementById("attend").value;
+    let people = parseInt(document.getElementById("people").value) || 0;
+
+    if (!name || !attend || !danceValue){
+        alert("Completează toate câmpurile!");
+        return;
+    }
+
+    if(attend !== "Da") people = 0;
+
+    const data = { name, attend, people, dance: danceValue };
+
+    console.log(data);
+
+    document.getElementById("success").style.display = "block";
+}
+</script>
+
+</body>
+</html>
