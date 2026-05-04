@@ -3,138 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Formular Banchet 🎓</title>
+<title>Banchet 🎓</title>
 
 <style>
 body {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
+    font-family: -apple-system, sans-serif;
+    background: linear-gradient(135deg,#0f172a,#1e293b);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    margin:0;
 }
-
 .container {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(15px);
-    padding: 30px;
-    border-radius: 20px;
-    width: 420px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    background:rgba(255,255,255,0.05);
+    padding:30px;
+    border-radius:20px;
+    width:400px;
 }
-
-h1 { text-align: center; }
-
-.question { margin: 18px 0; }
-
-label {
-    display: block;
-    margin-bottom: 6px;
-}
-
-input, select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 10px;
-    border: none;
-}
-
-.toggle-group {
-    display: flex;
-    gap: 10px;
-}
-
-.toggle-btn {
-    flex: 1;
-    padding: 10px;
-    border-radius: 10px;
-    border: none;
-    background: #334155;
-    color: white;
-    cursor: pointer;
-}
-
-.toggle-btn.active {
-    background: #6366f1;
-    transform: scale(1.05);
-}
-
-button.submit {
-    width: 100%;
-    padding: 12px;
-    border-radius: 12px;
-    border: none;
-    background: #6366f1;
-    color: white;
-    margin-top: 15px;
-    cursor: pointer;
-}
-
-.hidden { display: none; }
-
-#success {
-    display: none;
-    margin-top: 15px;
-    color: #22c55e;
-}
-
-#suggestion {
-    display: none;
-    font-size: 14px;
-    color: #38bdf8;
-}
+.hidden{display:none;}
+button{padding:10px;width:100%;margin-top:10px;}
+.toggle{display:flex;gap:10px;}
+.toggle button{flex:1;}
+.active{background:#6366f1;}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-    <h1>🎓 Formular Banchet</h1>
+<h2>Formular Banchet</h2>
 
-    <div class="question">
-        <label>Nume:</label>
-        <input type="text" id="name">
-    </div>
+<input id="name" placeholder="Nume"><br><br>
 
-    <div class="question">
-        <label>Vii la banchet?</label>
-        <select id="attend">
-            <option value="">Selectează</option>
-            <option>Da</option>
-            <option>Nu</option>
-            <option>Nu m-am hotărât</option>
-            <option>Aș veni dar nu am cu cine</option>
-        </select>
+<select id="attend">
+<option value="">Vii la banchet?</option>
+<option>Da</option>
+<option>Nu</option>
+<option>Nu m-am hotărât</option>
+<option>Aș veni dar nu am cu cine</option>
+</select>
 
-        <div id="suggestion">👉 Poți veni cu colegii!</div>
-    </div>
+<p id="suggestion" class="hidden">👉 Poți veni cu colegii!</p>
 
-    <div class="question hidden" id="peopleBox">
-        <label>Câte persoane?</label>
-        <input type="number" id="people" min="1">
-    </div>
+<div id="peopleBox" class="hidden">
+<input type="number" id="people" placeholder="Câte persoane?">
+</div>
 
-    <div class="question">
-        <label>Dansezi?</label>
-        <div class="toggle-group">
-            <button class="toggle-btn" id="danceYes">Da</button>
-            <button class="toggle-btn" id="danceNo">Nu</button>
-        </div>
-    </div>
+<br>
 
-    <button class="submit" id="submitBtn">Trimite</button>
+<div class="toggle">
+<button id="yes">Dansez</button>
+<button id="no">Nu dansez</button>
+</div>
 
-    <div id="success">✅ Răspuns trimis!</div>
-    <div id="stats"></div>
+<button id="submit" type="button">Trimite</button>
+
+<p id="success"></p>
+<p id="stats"></p>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getFirestore, addDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
+// 🔥 CONFIGUL TĂU
 const firebaseConfig = {
   apiKey: "AIzaSyB18N1nJuYOyCvaPwmqHw2XTVW_DdLPZtg",
   authDomain: "banchet-app.firebaseapp.com",
@@ -147,81 +81,90 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// SELECT ELEMENTE
+// ELEMENTE
 const attend = document.getElementById("attend");
 const peopleBox = document.getElementById("peopleBox");
 const suggestion = document.getElementById("suggestion");
-const submitBtn = document.getElementById("submitBtn");
+const submitBtn = document.getElementById("submit");
 
-let danceValue = "";
+let dance = "";
 
-// LOGICĂ DINAMICĂ
+// LOGICĂ
 attend.addEventListener("change", () => {
-    const val = attend.value;
+    console.log("CHANGE FUNCȚIONEAZĂ");
 
     peopleBox.classList.add("hidden");
-    suggestion.style.display = "none";
+    suggestion.classList.add("hidden");
 
-    if (val === "Da") {
+    if (attend.value === "Da") {
         peopleBox.classList.remove("hidden");
     }
 
-    if (val === "Aș veni dar nu am cu cine") {
-        suggestion.style.display = "block";
+    if (attend.value === "Aș veni dar nu am cu cine") {
+        suggestion.classList.remove("hidden");
     }
 });
 
-// TOGGLE DANS
-document.getElementById("danceYes").addEventListener("click", () => {
-    danceValue = "Da";
-    setActive("danceYes");
-});
+// TOGGLE
+document.getElementById("yes").onclick = () => {
+    dance = "Da";
+    setActive("yes");
+};
 
-document.getElementById("danceNo").addEventListener("click", () => {
-    danceValue = "Nu";
-    setActive("danceNo");
-});
+document.getElementById("no").onclick = () => {
+    dance = "Nu";
+    setActive("no");
+};
 
 function setActive(id){
-    document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".toggle button").forEach(b=>b.classList.remove("active"));
     document.getElementById(id).classList.add("active");
 }
 
 // SUBMIT
 submitBtn.addEventListener("click", async () => {
+
+    console.log("CLICK FUNCȚIONEAZĂ");
+
     const name = document.getElementById("name").value;
-    const attendVal = attend.value;
     let people = parseInt(document.getElementById("people").value) || 0;
 
-    if (!name || !attendVal || !danceValue){
-        alert("Completează toate câmpurile!");
+    if (!name || !attend.value || !dance){
+        alert("Completează!");
         return;
     }
 
-    if (attendVal !== "Da") people = 0;
+    if (attend.value !== "Da") people = 0;
 
-    await addDoc(collection(db, "banchet"), {
-        name,
-        attend: attendVal,
-        people,
-        dance: danceValue,
-        createdAt: new Date()
-    });
+    try {
+        await addDoc(collection(db, "banchet"), {
+            name,
+            attend: attend.value,
+            people,
+            dance,
+            createdAt: new Date()
+        });
 
-    document.getElementById("success").style.display = "block";
+        console.log("SALVAT!");
 
-    loadStats();
+        document.getElementById("success").innerText = "✅ Salvat!";
+        loadStats();
+
+    } catch (e) {
+        console.error("EROARE:", e);
+        alert("Eroare Firebase!");
+    }
 });
 
 // STATS
 async function loadStats(){
-    const snapshot = await getDocs(collection(db, "banchet"));
-
+    const snap = await getDocs(collection(db, "banchet"));
     let total = 0;
-    snapshot.forEach(doc => total += doc.data().people || 0);
+
+    snap.forEach(d => total += d.data().people || 0);
 
     document.getElementById("stats").innerText =
-        "👥 Total participanți: " + total;
+        "👥 Total: " + total;
 }
 
 loadStats();
