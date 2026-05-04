@@ -13,20 +13,46 @@ body {
     padding: 30px;
 }
 
-h1 { margin-bottom: 20px; }
+h1 { margin-bottom: 10px; }
+
+.topbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+select, button {
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+}
+
+.stat {
+    margin-bottom: 20px;
+    font-size: 18px;
+    color: #38bdf8;
+}
+
+.grid {
+    display: grid;
+    gap: 10px;
+}
 
 .card {
     background: #1e293b;
     padding: 15px;
     border-radius: 10px;
-    margin-bottom: 10px;
 }
 
-.stat {
-    font-size: 20px;
-    margin-bottom: 20px;
-    color: #38bdf8;
+.badge {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
 }
+
+.green { background: #16a34a; }
+.red { background: #dc2626; }
+.blue { background: #3b82f6; }
 </style>
 </head>
 
@@ -34,9 +60,19 @@ h1 { margin-bottom: 20px; }
 
 <h1>📊 Dashboard Banchet</h1>
 
-<div class="stat" id="total">Total participanți: ...</div>
+<div class="topbar">
+<select id="filter">
+    <option value="all">Toți</option>
+    <option value="Da">Doar vine</option>
+    <option value="Nu">Nu vine</option>
+</select>
 
-<div id="list"></div>
+<button onclick="exportCSV()">Export CSV</button>
+</div>
+
+<div class="stat" id="stats"></div>
+
+<div id="list" class="grid"></div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -52,25 +88,44 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-async function loadData(){
+let allData = [];
 
-    const snapshot = await db.collection("banchet").get();
+// 🔴 LIVE UPDATE
+db.collection("banchet").onSnapshot(snapshot => {
+    allData = [];
+    snapshot.forEach(doc => {
+        allData.push(doc.data());
+    });
 
-    let total = 0;
+    render();
+});
+
+// 🔍 FILTER + RENDER
+function render(){
+    const filter = document.getElementById("filter").value;
     const list = document.getElementById("list");
     list.innerHTML = "";
 
-    snapshot.forEach(doc => {
-        const d = doc.data();
+    let total = 0;
+    let count = 0;
 
+    allData.forEach(d => {
+
+        if(filter !== "all" && d.attend !== filter) return;
+
+        count++;
         total += d.people || 0;
 
         const div = document.createElement("div");
         div.className = "card";
 
+        const badgeClass =
+            d.attend === "Da" ? "green" :
+            d.attend === "Nu" ? "red" : "blue";
+
         div.innerHTML = `
             <b>${d.name}</b><br>
-            Vii: ${d.attend}<br>
+            <span class="badge ${badgeClass}">${d.attend}</span><br>
             Persoane: ${d.people}<br>
             Dansează: ${d.dance}
         `;
@@ -78,11 +133,29 @@ async function loadData(){
         list.appendChild(div);
     });
 
-    document.getElementById("total").innerText =
-        "👥 Total participanți: " + total;
+    document.getElementById("stats").innerText =
+        "👥 Total persoane: " + total + " | Răspunsuri: " + count;
 }
 
-loadData();
+// 🔄 schimb filter
+document.getElementById("filter").onchange = render;
+
+// 📥 EXPORT CSV
+function exportCSV(){
+    let csv = "Nume,Participa,Persoane,Danseaza\n";
+
+    allData.forEach(d => {
+        csv += `${d.name},${d.attend},${d.people},${d.dance}\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "banchet.csv";
+    a.click();
+}
 </script>
 
 </body>
